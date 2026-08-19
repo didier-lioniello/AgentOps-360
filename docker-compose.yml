@@ -1,0 +1,100 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: agentops
+      POSTGRES_PASSWORD: agentops
+      POSTGRES_DB: agentops
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentops"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.58
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "127.0.0.1:16686:16686"   # UI
+      - "127.0.0.1:4317:4317"     # OTLP gRPC
+      - "127.0.0.1:4318:4318"     # OTLP HTTP
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      - api
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://agentops:agentops@postgres:5432/agentops
+      REDIS_URL: redis://redis:6379/0
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  eval-worker:
+    profiles: ["evaluation"]
+    build: .
+    command: ["python", "-m", "workers.eval_worker"]
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: postgresql+asyncpg://agentops:agentops@postgres:5432/agentops
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ALLOW_EXTERNAL_EVAL_DATA: ${ALLOW_EXTERNAL_EVAL_DATA:-false}
+      STORE_INVOCATION_CONTENT: ${STORE_INVOCATION_CONTENT:-false}
+      EVAL_INTERVAL_SEC: ${EVAL_INTERVAL_SEC:-3600}
+      EVAL_REGRESSION_TOLERANCE: ${EVAL_REGRESSION_TOLERANCE:-0.03}
+      EVAL_MAX_ITEMS: ${EVAL_MAX_ITEMS:-50}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-large}
+      JUDGE_MODEL: ${JUDGE_MODEL:-gpt-4o-mini}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  cost-aggregator:
+    build: .
+    command: ["python", "-m", "workers.cost_aggregator"]
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: postgresql+asyncpg://agentops:agentops@postgres:5432/agentops
+      COST_ROLLUP_INTERVAL_SEC: ${COST_ROLLUP_INTERVAL_SEC:-300}
+      COST_ROLLUP_DAYS: ${COST_ROLLUP_DAYS:-7}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg_data:
+  redis_data:

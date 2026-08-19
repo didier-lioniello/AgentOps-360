@@ -1,0 +1,9 @@
+{
+  "agent": "orders-classifier",
+  "strategy": "canary",
+  "versions": [
+    {"version": "1.0.0", "weight": 90},
+    {"version": "1.1.0-canary", "weight": 10}
+  ],
+  "sticky_by": "tenant_id"
+}

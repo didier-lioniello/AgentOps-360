@@ -1,0 +1,32 @@
+{
+  "title": "AgentOps-360 Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Invocations / min",
+      "targets": [{"expr": "sum(rate(agentops_invocations_total[1m])) * 60"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency p95 by version",
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(agentops_invocation_latency_ms_bucket[5m])) by (le, agent, version))"}]
+    },
+    {
+      "type": "stat",
+      "title": "Tokens / min",
+      "targets": [{"expr": "sum(rate(agentops_invocation_tokens_total[5m])) * 60"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate by version",
+      "targets": [{"expr": "sum(rate(agentops_invocations_total{status=~\"error|timeout\"}[5m])) by (agent, version)"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Rate-limited / min",
+      "targets": [{"expr": "sum(rate(agentops_rate_limited_total[1m])) * 60"}]
+    }
+  ]
+}

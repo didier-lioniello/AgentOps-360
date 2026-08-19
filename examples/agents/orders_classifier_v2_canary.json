@@ -1,0 +1,18 @@
+{
+  "name": "orders-classifier",
+  "version": "1.1.0-canary",
+  "model": "gpt-4o",
+  "temperature": 0.0,
+  "system_prompt": "You classify customer support messages about orders into one of: shipping_delay, missing_item, wrong_item, refund_request, other. If the message is ambiguous, prefer 'other'. Reply with the label only.",
+  "tools": [],
+  "eval_dataset": "orders_v1",
+  "guardrails": {
+    "max_cost_per_call_usd": 0.10,
+    "max_tokens": 64,
+    "timeout_ms": 10000
+  },
+  "metadata": {
+    "owner": "support-platform",
+    "promotion_target": "1.1.0"
+  }
+}
