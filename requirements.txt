@@ -82,7 +82,7 @@ jsonpatch==1.33
     # via langchain-core
 jsonpointer==3.1.1
     # via jsonpatch
-langchain-core==1.5.6
+langchain-core==1.6.1
     # via
     #   -r requirements.in
     #   langchain-openai
