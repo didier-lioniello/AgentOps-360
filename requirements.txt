@@ -37,9 +37,7 @@ click==8.4.2
 coverage==7.15.4
     # via pytest-cov
 distro==1.9.0
-    # via
-    #   langsmith
-    #   openai
+    # via langsmith
 fastapi==0.141.1
     # via -r requirements.in
 googleapis-common-protos==1.75.1
@@ -96,7 +94,7 @@ mako==1.4.1
     # via alembic
 markupsafe==3.0.3
     # via mako
-openai==3.3.0
+openai==3.5.0
     # via
     #   -r requirements.in
     #   langchain-openai
