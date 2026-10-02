@@ -262,7 +262,7 @@ typing-inspection==0.4.4
     #   fastapi
     #   pydantic
     #   pydantic-settings
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests
 uuid-utils==0.17.0
     # via
