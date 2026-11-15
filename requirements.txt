@@ -92,7 +92,7 @@ langchain-protocol==0.0.18
     # via langchain-core
 langsmith==0.11.0
     # via langchain-core
-mako==1.4.1
+mako==1.4.2
     # via alembic
 markupsafe==3.0.3
     # via mako
